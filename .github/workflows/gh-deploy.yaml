@@ -1,14 +1,11 @@
-name: 📘 Deploy Docs to GitHub Pages
+name: Deploy MkDocs Documentation
 
 on:
   push:
     branches:
     - main
     paths:
-    - 'docs-site/mkdocs.yml'
-    - 'docs-site/docs/**'
-  workflow_dispatch:
-
+    - 'docs-site/**'
 
 permissions:
   contents: write
@@ -16,21 +13,23 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: docs-site
     steps:
-    - name: ⬇️ Checkout repository
+    - name: 📥 Checkout repo
       uses: actions/checkout@v3
 
-    - name: 📦 Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
 
-    - name: 🧪 Install dependencies
+    - name: 📦 Install dependencies
       run: |
-        pip install -r docs-site/requirements.txt
+        pip install -r requirements.txt
 
-    - name: 🚀 Build and deploy
-      working-directory: docs-site
+    - name: 🚀 Deploy to GitHub Pages
       run: |
+        pip install mkdocs-material
         mkdocs gh-deploy --force
