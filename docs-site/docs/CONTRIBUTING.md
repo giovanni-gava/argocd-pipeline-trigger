@@ -8,9 +8,13 @@ Welcome! 🎉 First of all, thank you for considering contributing to this proje
 
 ArgoCD Pipeline Trigger aims to be:
 - 💡 **Simple**: Easy to use and extend
+
 - 🔐 **Secure**: Safe by default
+
 - 📊 **Observable**: Prometheus and alert-ready
+
 - 🔁 **GitOps-native**: Ready for real CI/CD pipelines
+
 - 🧰 **DevOps-first**: Designed for real-world infra
 
 ---
