@@ -4,7 +4,6 @@
 
 # 🚀 ArgoCD Pipeline Trigger
 
-![Logo](./A_logo_design_for_a_project_named_"ArgoCD_Pipeline.png)
 
 > Automatically trigger ArgoCD sync or refresh after GitHub/GitLab CI pipelines complete, using webhooks, CLI or custom Go tools.
 
