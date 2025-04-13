@@ -5,8 +5,8 @@ on:
     branches:
     - main
     paths:
-    - 'mkdocs.yml'
-    - 'docs/**'
+    - 'docs-site/mkdocs.yml'
+    - 'docs-site/docs/**'
 
 permissions:
   contents: write
