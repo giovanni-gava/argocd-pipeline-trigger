@@ -1,14 +1,23 @@
-APP_NAME := argocd-sync
+# Diretórios
 BIN_DIR := bin
-IMAGE_NAME := $(APP_NAME):latest
+DOCKERFILES_DIR := dockerfiles
+TRIGGER_DOCKERFILE := $(DOCKERFILES_DIR)/trigger/Dockerfile
+RECEIVER_DOCKERFILE := $(DOCKERFILES_DIR)/receiver/Dockerfile
 
-.PHONY: all build lint test run clean scan docker-build docker-run
+# Imagens
+TRIGGER_IMAGE := argocd-sync:latest
+RECEIVER_IMAGE := webhook-receiver:latest
 
-all: build
+.PHONY: all build lint test run clean \
+        build-trigger docker-trigger run-trigger scan-trigger \
+        build-webhook docker-webhook run-webhook scan-webhook
 
-build:
-	@echo "🔧 Building $(APP_NAME)..."
-	go build -o $(BIN_DIR)/$(APP_NAME) .
+# === Comandos genéricos ===
+all: build-trigger build-webhook
+
+clean:
+	@echo "🧹 Cleaning binaries..."
+	rm -rf $(BIN_DIR)
 
 lint:
 	@echo "🔍 Running golint..."
@@ -19,22 +28,36 @@ test:
 	@echo "🧪 Running tests..."
 	go test -v ./...
 
-run:
-	@echo "🚀 Running CLI..."
-	./$(BIN_DIR)/$(APP_NAME) sync --app my-app --server https://argocd.example.com --username admin --password secret --insecure
+# === CLI Trigger (argocd-sync) ===
+build-trigger:
+	@echo "🔧 Building CLI argocd-sync..."
+	go build -o $(BIN_DIR)/argocd-sync .
 
-clean:
-	@echo "🧹 Cleaning..."
-	rm -rf $(BIN_DIR)
+docker-trigger:
+	@echo "🐳 Building Docker image for CLI (argocd-sync)..."
+	docker build -f $(TRIGGER_DOCKERFILE) -t $(TRIGGER_IMAGE) .
 
-docker-build:
-	@echo "🐳 Building Docker image..."
-	docker build -t $(IMAGE_NAME) .
+run-trigger:
+	@echo "🚀 Running CLI (argocd-sync)..."
+	./$(BIN_DIR)/argocd-sync sync --app my-app --server https://argocd.example.com --username admin --password secret --insecure
 
-docker-run:
-	@echo "🐳 Running Docker container..."
-	docker run --rm $(IMAGE_NAME) sync --app my-app --server https://argocd.example.com --username admin --password secret --insecure
+scan-trigger: docker-trigger
+	@echo "🔎 Scanning CLI image with Trivy..."
+	trivy image --no-progress --severity HIGH,CRITICAL $(TRIGGER_IMAGE)
 
-scan: docker-build
-	@echo "🔎 Scanning Docker image with Trivy..."
-	trivy image --no-progress --severity HIGH,CRITICAL $(IMAGE_NAME)
+# === Webhook Receiver ===
+build-webhook:
+	@echo "🔧 Building webhook receiver binary..."
+	go build -o $(BIN_DIR)/webhook-receiver ./cmd/webhook/main.go
+
+docker-webhook:
+	@echo "🐳 Building Docker image for webhook receiver..."
+	docker build -f $(RECEIVER_DOCKERFILE) -t $(RECEIVER_IMAGE) .
+
+run-webhook:
+	@echo "🚀 Running webhook receiver..."
+	ADDR=":8080" ./$(BIN_DIR)/webhook-receiver
+
+scan-webhook: docker-webhook
+	@echo "🔎 Scanning webhook image with Trivy..."
+	trivy image --no-progress --severity HIGH,CRITICAL $(RECEIVER_IMAGE)
