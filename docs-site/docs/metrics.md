@@ -70,4 +70,3 @@ These queries can be used to build alerts or dashboards for:
 ---
 
 For more, visit the [Grafana page](https://grafana.com/) or use the included dashboard JSON.
-
