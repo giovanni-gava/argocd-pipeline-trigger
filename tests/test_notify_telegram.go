@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"argocd-pipeline-trigger/internal/notifier"
+	"github.com/giovanni-gava/argocd-pipeline-trigger/internal/notifier"
 )
 
 func main() {

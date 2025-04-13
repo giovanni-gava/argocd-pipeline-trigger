@@ -11,7 +11,7 @@ import (
 	"os/exec"
 	"time"
 
-	"argocd-pipeline-trigger/internal/notifier"
+	"github.com/giovanni-gava/argocd-pipeline-trigger/internal/notifier"
 )
 
 const (
