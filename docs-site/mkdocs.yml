@@ -55,5 +55,5 @@ markdown_extensions:
 - pymdownx.tabbed
 - pymdownx.details
 - pymdownx.emoji
-- pymdownx.inlinehilite
+- pymdownx.superfences
 - pymdownx.copybutton
