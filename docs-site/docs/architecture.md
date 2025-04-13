@@ -56,3 +56,5 @@ The architecture is modular and can be extended with:
 ---
 
 ArgoCD Pipeline Trigger was built to balance simplicity, observability, and flexibility — making it ideal for modern GitOps workflows.
+
+
