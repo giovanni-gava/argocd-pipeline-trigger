@@ -47,7 +47,7 @@ argocd-pipeline-trigger/
 │   ├── slack.go
 │   ├── telegram.go
 │   └── formatter.go
-├── dockerfiles/             # Distroless Dockerfiles
+├── dockerfiles/             # Distinct Dockerfiles for CLI and receiver
 │   ├── trigger/Dockerfile
 │   └── receiver/Dockerfile
 ├── scripts/                 # Python/Go automation scripts
@@ -101,6 +101,53 @@ curl -X POST http://localhost:8080/sync \
 - Timeout + recovery
 - Secure input validation
 - Sends notifications post-sync
+
+---
+
+## 🐳 Using Docker
+
+This project provides **two Dockerfiles**, designed for different use cases:
+
+### ✅ 1. CLI `argocd-sync`
+
+**Build:**
+```bash
+docker build -f dockerfiles/trigger/Dockerfile -t argocd-sync:latest .
+```
+
+**Run:**
+```bash
+docker run --rm argocd-sync:latest \
+  sync \
+  --app my-app \
+  --server https://argocd.example.com \
+  --username admin \
+  --password secret \
+  --insecure
+```
+
+### ✅ 2. Webhook Receiver
+
+**Build:**
+```bash
+docker build -f dockerfiles/receiver/Dockerfile -t webhook-receiver:latest .
+```
+
+**Run:**
+```bash
+docker run --rm -p 8080:8080 \
+  -e ENABLE_TELEGRAM=true \
+  -e TELEGRAM_BOT_TOKEN=xxxx \
+  -e TELEGRAM_CHAT_ID=xxxx \
+  webhook-receiver:latest
+```
+
+**Test:**
+```bash
+curl -X POST http://localhost:8080/sync \
+  -H "Content-Type: application/json" \
+  -d '{"app":"my-app"}'
+```
 
 ---
 
@@ -209,6 +256,9 @@ DevOps Engineer | Software Engineer | Cloud Architect | AWS | GCP | Python & Gol
 ## ⭐ Star this repo if it helped you!
 
 Contribuições são bem-vindas — abra uma issue, envie um PR ou compartilhe! 🚀
+
+
+
 
 
 
