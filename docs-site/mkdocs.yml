@@ -38,6 +38,7 @@ nav:
 - Home: index.md
 - Quickstart: quickstart.md
 - CLI Tool: cli.md
+- Docker & Local Testing: docker.md
 - Webhook Receiver: receiver.md
 - Metrics & Observability: metrics.md
 - Notifications: integrations.md
