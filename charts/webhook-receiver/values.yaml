@@ -34,3 +34,13 @@ notifications:
     enabled: false
     botToken: ""
     chatId: ""
+
+metrics:
+  enabled: true
+  path: /metrics
+  port: 8080
+
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard

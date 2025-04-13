@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: webhook-receiver
+  labels:
+    release: prometheus
+    app.kubernetes.io/name: webhook-receiver
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: webhook-receiver
+  namespaceSelector:
+    matchNames:
+    - default
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 15s
