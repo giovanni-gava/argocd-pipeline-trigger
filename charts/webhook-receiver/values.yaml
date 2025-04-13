@@ -24,3 +24,13 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 65532
   allowPrivilegeEscalation: false
+
+notifications:
+  slack:
+    enabled: false
+    webhookUrl: ""
+
+  telegram:
+    enabled: false
+    botToken: ""
+    chatId: ""
