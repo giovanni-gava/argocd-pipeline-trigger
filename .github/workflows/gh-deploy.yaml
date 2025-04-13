@@ -7,6 +7,8 @@ on:
     paths:
     - 'docs-site/mkdocs.yml'
     - 'docs-site/docs/**'
+  workflow_dispatch:
+
 
 permissions:
   contents: write
@@ -29,5 +31,6 @@ jobs:
         pip install mkdocs-material
 
     - name: 🚀 Build and deploy
+      working-directory: docs-site
       run: |
         mkdocs gh-deploy --force
