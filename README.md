@@ -1,166 +1,215 @@
 ![ChatGPT Image 13 de abr  de 2025, 00_55_47](https://github.com/user-attachments/assets/d1cbb152-1f89-4f29-942d-8cd232d7b3fe)
 
+# ArgoCD Pipeline Trigger 🔁
 
-# 🚀 ArgoCD Pipeline Trigger
+> 🚀 Trigger ArgoCD App Sync automatically from CI/CD pipelines with optional Slack/Telegram notifications, full GitOps support, and enterprise-level architecture.
 
-> Automatically trigger ArgoCD sync after GitHub/GitLab CI pipelines using webhooks, CLI or custom Go tools.
-
-![Go](https://img.shields.io/badge/built%20with-Go-00ADD8?logo=go&logoColor=white)
-![ArgoCD](https://img.shields.io/badge/argocd-integrated-brightgreen?logo=argo)
-![CI/CD](https://img.shields.io/badge/ci/cd-github--actions-blue?logo=githubactions)
-![Security](https://img.shields.io/badge/scanned%20with-Trivy-critical?logo=aqua)
-![License](https://img.shields.io/github/license/giovanni-gava/argocd-pipeline-trigger)
+![banner](docs/banner.png) <!-- opcional -->
 
 ---
 
-## ✨ Overview
+## 📚 Overview
 
-**ArgoCD Pipeline Trigger** is a lightweight solution to automate the synchronization of ArgoCD applications after CI/CD pipelines complete.  
-Ideal for GitOps workflows, this tool supports multiple integration strategies: Webhooks, CLI, or a custom Go-based tool.
+**ArgoCD Pipeline Trigger** is a production-ready, extensible, and secure tool built with Go to automate ArgoCD app syncs after pull requests are merged.
 
-Whether you're using GitHub Actions, GitLab CI, or a custom platform, this project helps you bridge **CI pipelines ↔ GitOps delivery** in a secure, portable, and extensible way.
+It features:
 
----
-
-## 📦 Features
-
-- 🔁 Automatically sync ArgoCD apps after PR merges
-- 🛠️ Works with **GitHub Actions**, **GitLab CI**, or any CI/CD platform
-- 🧩 Supports:
-  - Webhook Receiver (coming soon)
-  - ArgoCD CLI integration ✅
-  - Go-based custom CLI tool ✅
-- 🔒 Secure, token-based authentication to ArgoCD
-- ⚡ Easy to deploy and integrate into existing pipelines
+- ✅ CLI tool (`argocd-sync`) written in Go
+- ✅ Webhook Receiver service (distroless) for event-driven sync
+- ✅ Slack & Telegram notifications with rich formatting
+- ✅ Helm chart for easy Kubernetes deployment
+- ✅ GitOps-ready architecture and full CI/CD integration
 
 ---
 
-## 🧰 Use Cases
+## 📐 Architecture
 
-| Trigger            | Method               | Description                           |
-|--------------------|----------------------|---------------------------------------|
-| PR merged          | Webhook receiver     | CI sends HTTP request to trigger sync |
-| CI/CD completed    | `argocd app sync`    | Run ArgoCD CLI directly               |
-| Custom event logic | Go CLI tool          | Executes sync securely via API/exec   |
+```text
+              +-------------+          +-----------------+          +------------------+
+              | GitHub/GitLab|  PR → CI|  CLI or Webhook |  Sync → |    ArgoCD App    |
+              +-------------+   -----> +-----------------+   -----> +------------------+
+                                         |             |                |
+                                         |             |-- Notify --> Slack/Telegram
+                                  argocd-sync     webhook-receiver
+```
 
 ---
 
-## 🖼️ Architecture
+## 🧰 Project Structure
 
-```plaintext
-          +---------+            +------------------+            +------------------+
-          | GitHub  |  PR Merge  | GitHub Actions   |  Webhook   | ArgoCD Controller |
-          +---------+ ---------->+------------------+----------->+------------------+
-                                                              |
-                                                              v
-                                                    argocd app sync my-app
-
-
-🔧 Project Structure
-
+```
 argocd-pipeline-trigger/
-├── bin/                      # Compiled CLI binary
-│   └── argocd-sync
-├── cmd/                      # CLI commands (cobra)
+├── cmd/                      # CLI and receiver entrypoints
 │   ├── root.go
-│   └── sync.go
-├── internal/                 # Core ArgoCD logic
-│   └── argocd/
-│       ├── client.go
-│       └── config.go
-├── manifests/                # ArgoCD app & receiver YAMLs
-├── scripts/                  # Bash scripts for integration
-├── examples/                 # CI/CD integration examples
-├── .github/workflows/        # GitHub Actions (to be added)
-├── Dockerfile                # Multistage secure build
-├── Makefile                  # Build, lint, test, scan, docker
-├── go.mod / go.sum           # Go module files
-├── LICENSE                   # MIT License
-├── main.go                   # Entrypoint
-└── README.md                 # This file 😉
+│   ├── sync.go
+│   └── webhook/main.go
+├── internal/notifier/       # Slack and Telegram integrations
+│   ├── notifier.go
+│   ├── slack.go
+│   ├── telegram.go
+│   └── formatter.go
+├── dockerfiles/             # Distroless Dockerfiles
+│   ├── trigger/Dockerfile
+│   └── receiver/Dockerfile
+├── scripts/                 # Python/Go automation scripts
+├── charts/                  # Helm chart for K8s deployment
+│   └── webhook-receiver/
+├── tests/                   # Manual validation scripts
+├── Makefile                 # Build and automation
+├── go.mod / go.sum
+└── README.md
+```
 
-🚀 Getting Started
-✅ Option 1: Use CLI directly
+---
 
-./bin/argocd-sync sync \
+## ⚙️ CLI Tool: `argocd-sync`
+
+### 💻 Usage
+
+```bash
+./argocd-sync sync \
   --app my-app \
   --server https://argocd.example.com \
   --username admin \
   --password secret \
   --insecure
+```
 
-🐳 Option 2: Use Docker image
+### ✅ Features
+- Go `cobra`-based CLI
+- Build with `make build-trigger`
+- Docker-ready with `make docker-trigger`
 
-docker build -t argocd-sync .
-docker run --rm argocd-sync sync \
-  --app my-app \
-  --server https://argocd.example.com \
-  --username admin \
-  --password secret \
-  --insecure
+---
 
-🛠 Option 3: Run via GitHub Actions
+## 🌐 Webhook Receiver
 
-- name: 🔑 Login and Sync ArgoCD
-  run: |
-    argocd login $ARGOCD_SERVER \
-      --username $ARGOCD_USERNAME \
-      --password $ARGOCD_PASSWORD \
-      --insecure
-    argocd app sync my-app
+### 🚀 Start locally
 
-🧪 Development
-🔧 Build
+```bash
+ADDR=":8080" go run cmd/webhook/main.go
+```
 
-make build
+### 🧪 Test
+```bash
+curl -X POST http://localhost:8080/sync \
+  -H "Content-Type: application/json" \
+  -d '{"app":"my-app"}'
+```
 
+### ✅ Features
+- Written in idiomatic Go
+- Timeout + recovery
+- Secure input validation
+- Sends notifications post-sync
 
-🧼 Lint & Test
+---
 
-make lint
-make test
+## 💬 Notifications
 
+### ✅ Slack
+1. Create a webhook in Slack workspace
+2. Export:
+```bash
+export ENABLE_SLACK=true
+export SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+```
 
-🔐 Security Scan
+### ✅ Telegram
+1. Create bot via [@BotFather](https://t.me/BotFather)
+2. Start chat or group, send a message
+3. Get `chat_id` via:
+```bash
+curl https://api.telegram.org/bot<BOT_TOKEN>/getUpdates
+```
+4. Export:
+```bash
+export ENABLE_TELEGRAM=true
+export TELEGRAM_BOT_TOKEN=your:token
+export TELEGRAM_CHAT_ID=12345678
+```
 
-make scan
+---
 
-Uses Trivy to detect HIGH/CRITICAL vulnerabilities in the Docker image.
+## 📦 Helm Chart
 
+### 🧭 Deploy to Kubernetes
 
-✅ Requirements
-Go 1.21+
+```bash
+helm upgrade --install webhook charts/webhook-receiver \
+  --set notifications.slack.enabled=true \
+  --set-file notifications.slack.webhookUrl=./my-slack-secret.txt
+```
 
-ArgoCD CLI installed (inside Docker or system)
+### 🔐 Secure secrets
+Use sealed-secrets or Helm secret values to avoid exposing credentials:
+```bash
+kubectl create secret generic webhook-receiver-secrets \
+  --from-literal=slackWebhookUrl=... \
+  --from-literal=telegramBotToken=... \
+  --from-literal=telegramChatId=...
+```
 
-ArgoCD v2.5+
+---
 
-Valid user/token for authentication
+## 🧪 Test Utilities
 
-📋 Roadmap
- CLI tool with Cobra
+### ✅ Send test to Telegram
+```bash
+go run tests/test_notify_telegram.go
+```
 
- GitHub Actions pipeline integration
+### 🐍 Python alternative
+```bash
+python3 scripts/test_webhook.py http://localhost:8080/sync
+```
 
- Secure Docker image (distroless)
+### 🔁 CI Integration
+Add in GitHub/GitLab pipelines:
+```bash
+curl -X POST $WEBHOOK_URL -H "Content-Type: application/json" -d '{"app":"my-app"}'
+```
 
- Trivy scan included in Makefile
+---
 
- Webhook receiver in Go
+## 🔐 Security
 
- Helm chart for deploying CLI/receiver
+- ✅ Uses `distroless` images
+- ✅ Build statically with `CGO_ENABLED=0`
+- ✅ No tokens hardcoded
+- ✅ Timeout in all HTTP clients
+- ✅ Secrets loaded via Kubernetes secrets
+- ✅ Validated JSON payloads
 
- Optional Slack/Discord notifier
+Run security scan:
+```bash
+make scan-webhook
+```
 
+---
 
-🤝 Contributing
-Pull requests, ideas, and discussions are welcome!
-Share your integration or fork with #argocd-pipeline-trigger ❤️
+## 🎯 Why This Project?
 
-👨‍💻 Author
-Made with 💙 by Giovanni Gava
-DevOps Engineer | Software Engineer (Go) | Cloud Architect | GitOps Evangelist
+This project was designed to:
+- Replace manual `argocd app sync` after merge
+- Bring **GitOps automation** to life in CI/CD
+- Showcase clean Go + DevOps engineering
+- Offer a plug-and-play solution for teams
+- Demonstrate **security, observability, and extensibility**
 
-![ChatGPT Image 13 de abr  de 2025, 01_22_58](https://github.com/user-attachments/assets/0ed8c488-51de-49cf-8006-00cf9a52367d)
+---
+
+## 👨🏻‍💻 Author
+
+Feito com 💙 por **Giovanni Colognesi**  
+DevOps Engineer | Software Engineer | Cloud Architect | AWS | GCP | Python & Golang Builder | Kubernetes | Terraform | CI/CD Evangelist | Infra as Code Expert | Strategic Problem Solver | Creative Mind 
+[🔗 LinkedIn](https://linkedin.com/in/giovanni-gava) | [🐙 GitHub](https://github.com/giovanni-gava)
+
+---
+
+## ⭐ Star this repo if it helped you!
+
+Contribuições são bem-vindas — abra uma issue, envie um PR ou compartilhe! 🚀
+
 
 
