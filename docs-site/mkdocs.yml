@@ -44,7 +44,7 @@ nav:
 - Security: security.md
 - Helm Deployment: helm.md
 - Architecture: architecture.md
-- Contributing: contributing.md
+- Contributing: CONTRIBUTING.md
 
 markdown_extensions:
 - toc:
@@ -56,4 +56,3 @@ markdown_extensions:
 - pymdownx.details
 - pymdownx.emoji
 - pymdownx.superfences
-- pymdownx.copybutton
