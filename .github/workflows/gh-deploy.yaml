@@ -11,6 +11,10 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs-site # 👈 ajustado aqui
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -24,6 +28,6 @@ jobs:
       run: |
         pip install mkdocs-material
 
-    - name: Build and deploy
+    - name: Deploy to GitHub Pages
       run: |
         mkdocs gh-deploy --force --clean
