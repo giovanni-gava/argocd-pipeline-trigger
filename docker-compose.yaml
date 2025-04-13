@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  receiver:
+    build:
+      context: .
+      dockerfile: dockerfiles/receiver/Dockerfile
+    container_name: webhook-receiver
+    ports:
+      - "8080:8080"
+    environment:
+      - ENABLE_TELEGRAM=true
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - ADDR=:8080
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./docker-compose/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker-compose/dashboards:/var/lib/grafana/dashboards
+      - ./docker-compose/grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/default.yaml
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  grafana-data:
