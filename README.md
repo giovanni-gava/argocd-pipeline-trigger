@@ -4,7 +4,6 @@
 
 > 🚀 Trigger ArgoCD App Sync automatically from CI/CD pipelines with optional Slack/Telegram notifications, full GitOps support, and enterprise-level architecture.
 
-![banner](docs/banner.png) <!-- opcional -->
 
 ---
 
