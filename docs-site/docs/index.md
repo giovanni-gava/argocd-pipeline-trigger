@@ -12,9 +12,13 @@
 
 It includes:
 - ✅ Go CLI to trigger syncs manually or from pipelines
+
 - ✅ Webhook Receiver to automate triggers via HTTP
+
 - ✅ Notifications via Slack and Telegram
+
 - ✅ Exporter endpoint for Prometheus (`/metrics`)
+
 - ✅ Helm Chart for production-ready deployment
 
 ---
