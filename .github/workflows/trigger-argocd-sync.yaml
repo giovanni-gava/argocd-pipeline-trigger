@@ -3,7 +3,7 @@ name: Trigger ArgoCD Sync
 on:
   push:
     branches:
-    - main # roda apenas quando um PR é mergeado na main
+    - main # Run only on PR merge to main
 
 jobs:
   build-and-sync:
@@ -31,25 +31,30 @@ jobs:
         go install golang.org/x/lint/golint@latest
         golint ./...
 
-    - name: 🧪 (Optional) Run tests
-      run: |
-        go test -v ./...
+    - name: 🧪 Run tests
+      run: go test -v ./...
 
     - name: ⚙️ Build CLI binary
       run: |
-        go build -o bin/argocd-sync ./cmd
+        mkdir -p bin
+        go build -o bin/argocd-sync .
 
-    - name: 🔑 Authenticate with ArgoCD (CLI)
+    - name: 🔑 Authenticate with ArgoCD CLI
       run: |
         curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x argocd
         sudo mv argocd /usr/local/bin/
 
-        argocd login $ARGOCD_SERVER \
+        argocd login "$ARGOCD_SERVER" \
           --username "$ARGOCD_USERNAME" \
           --password "$ARGOCD_PASSWORD" \
           --insecure
 
-    - name: 🚀 Sync ArgoCD App
+    - name: 🚀 Trigger ArgoCD Sync
       run: |
-        argocd app sync "$ARGOCD_APP"
+        bin/argocd-sync sync \
+          --app "$ARGOCD_APP" \
+          --server "$ARGOCD_SERVER" \
+          --username "$ARGOCD_USERNAME" \
+          --password "$ARGOCD_PASSWORD" \
+          --insecure
