@@ -59,14 +59,25 @@ Whether you're using GitHub Actions, GitLab CI, or a custom platform, this proje
 🔧 Project Structure
 
 argocd-pipeline-trigger/
-├── cmd/                    # CLI command logic (cobra)
-├── internal/               # Core logic to connect to ArgoCD
-├── .github/workflows/      # GitHub Actions pipeline
-├── Dockerfile              # Secure distroless image
-├── Makefile                # Build, lint, test, scan, docker
-├── go.mod / go.sum         # Module definitions
-├── bin/                    # Compiled binary output
-└── README.md
+├── bin/                      # Compiled CLI binary
+│   └── argocd-sync
+├── cmd/                      # CLI commands (cobra)
+│   ├── root.go
+│   └── sync.go
+├── internal/                 # Core ArgoCD logic
+│   └── argocd/
+│       ├── client.go
+│       └── config.go
+├── manifests/                # ArgoCD app & receiver YAMLs
+├── scripts/                  # Bash scripts for integration
+├── examples/                 # CI/CD integration examples
+├── .github/workflows/        # GitHub Actions (to be added)
+├── Dockerfile                # Multistage secure build
+├── Makefile                  # Build, lint, test, scan, docker
+├── go.mod / go.sum           # Go module files
+├── LICENSE                   # MIT License
+├── main.go                   # Entrypoint
+└── README.md                 # This file 😉
 
 🚀 Getting Started
 ✅ Option 1: Use CLI directly
