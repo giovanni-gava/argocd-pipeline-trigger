@@ -92,5 +92,4 @@ Explore:
 
 ---
 
-Need help? Reach out on [LinkedIn](https://linkedin.com/in/giovannicolognesi) or open an issue on GitHub 💙
-
+Need help? Reach out on [LinkedIn](https://linkedin.com/in/giovanni-gava) or open an issue on GitHub 💙
