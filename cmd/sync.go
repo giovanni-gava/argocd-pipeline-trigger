@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"argocd-pipeline-trigger/internal/argocd"
+	"github.com/giovanni-gava/argocd-pipeline-trigger/internal/argocd"
+
 	"fmt"
 
 	"github.com/spf13/cobra"

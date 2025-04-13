@@ -1,6 +1,6 @@
 package main
 
-import "argocd-pipeline-trigger/cmd"
+import "github.com/giovanni-gava/argocd-pipeline-trigger/cmd"
 
 func main() {
 	cmd.Execute()
