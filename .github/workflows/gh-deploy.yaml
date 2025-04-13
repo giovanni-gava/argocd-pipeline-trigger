@@ -28,7 +28,7 @@ jobs:
 
     - name: 🧪 Install dependencies
       run: |
-        pip install mkdocs-material
+        pip install -r docs-site/requirements.txt
 
     - name: 🚀 Build and deploy
       working-directory: docs-site
