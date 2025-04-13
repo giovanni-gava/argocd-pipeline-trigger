@@ -1,0 +1,59 @@
+site_name: ArgoCD Pipeline Trigger
+site_description: "Trigger ArgoCD sync from CI/CD with notifications and observability."
+site_url: https://giovanni-gava.github.io/argocd-pipeline-trigger
+repo_url: https://github.com/giovanni-gava/argocd-pipeline-trigger
+repo_name: giovanni-gava/argocd-pipeline-trigger
+edit_uri: edit/main/docs/
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  features:
+  - navigation.instant
+  - navigation.sections
+  - navigation.tabs
+  - search.suggest
+  - content.code.copy
+  - content.action.edit
+  - content.tabs.link
+  - navigation.top
+  palette:
+  - scheme: default
+    primary: blue grey
+    accent: indigo
+  - scheme: slate
+    primary: blue grey
+    accent: indigo
+    toggle:
+      icon: material/brightness-4
+      name: Switch to dark mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  logo: assets/logo.png
+  favicon: assets/favicon.ico
+
+nav:
+- Home: index.md
+- Quickstart: quickstart.md
+- CLI Tool: cli.md
+- Webhook Receiver: receiver.md
+- Metrics & Observability: metrics.md
+- Notifications: integrations.md
+- Security: security.md
+- Helm Deployment: helm.md
+- Architecture: architecture.md
+- Contributing: contributing.md
+
+markdown_extensions:
+- toc:
+    permalink: true
+- admonition
+- codehilite
+- pymdownx.superfences
+- pymdownx.tabbed
+- pymdownx.details
+- pymdownx.emoji
+- pymdownx.inlinehilite
+- pymdownx.copybutton
