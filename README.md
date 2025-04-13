@@ -1,42 +1,47 @@
-![ChatGPT Image 13 de abr  de 2025, 00_55_47](https://github.com/user-attachments/assets/d33a7cba-3444-4f69-8eb1-5ca87330ecfa)
-
+![ChatGPT Image 13 de abr  de 2025, 00_55_47](https://github.com/user-attachments/assets/d1cbb152-1f89-4f29-942d-8cd232d7b3fe)
 
 
 # 🚀 ArgoCD Pipeline Trigger
 
+> Automatically trigger ArgoCD sync after GitHub/GitLab CI pipelines using webhooks, CLI or custom Go tools.
 
-> Automatically trigger ArgoCD sync or refresh after GitHub/GitLab CI pipelines complete, using webhooks, CLI or custom Go tools.
+![Go](https://img.shields.io/badge/built%20with-Go-00ADD8?logo=go&logoColor=white)
+![ArgoCD](https://img.shields.io/badge/argocd-integrated-brightgreen?logo=argo)
+![CI/CD](https://img.shields.io/badge/ci/cd-github--actions-blue?logo=githubactions)
+![Security](https://img.shields.io/badge/scanned%20with-Trivy-critical?logo=aqua)
+![License](https://img.shields.io/github/license/giovanni-gava/argocd-pipeline-trigger)
 
 ---
 
 ## ✨ Overview
 
-**ArgoCD Pipeline Trigger** is a lightweight solution to automate the synchronization of ArgoCD applications after CI/CD pipelines are completed. Ideal for GitOps workflows, this tool supports multiple integration strategies to match your CI and team preferences.
+**ArgoCD Pipeline Trigger** is a lightweight solution to automate the synchronization of ArgoCD applications after CI/CD pipelines complete.  
+Ideal for GitOps workflows, this tool supports multiple integration strategies: Webhooks, CLI, or a custom Go-based tool.
 
-Whether you use GitHub Actions, GitLab CI, or a custom deployment pipeline, this project helps you bridge CI and GitOps with minimal friction.
+Whether you're using GitHub Actions, GitLab CI, or a custom platform, this project helps you bridge **CI pipelines ↔ GitOps delivery** in a secure, portable, and extensible way.
 
 ---
 
 ## 📦 Features
 
-- 🔁 Sync ArgoCD applications automatically after PR merges
-- 🛠️ Works with **GitHub Actions**, **GitLab CI**, or any CI/CD tool
+- 🔁 Automatically sync ArgoCD apps after PR merges
+- 🛠️ Works with **GitHub Actions**, **GitLab CI**, or any CI/CD platform
 - 🧩 Supports:
-  - Webhook Receiver
-  - ArgoCD CLI integration
-  - Go-based custom tool
-- 🔒 Supports token-based authentication to ArgoCD
-- 🧠 Demonstrates real CI/CD + GitOps integration
+  - Webhook Receiver (coming soon)
+  - ArgoCD CLI integration ✅
+  - Go-based custom CLI tool ✅
+- 🔒 Secure, token-based authentication to ArgoCD
+- ⚡ Easy to deploy and integrate into existing pipelines
 
 ---
 
 ## 🧰 Use Cases
 
-| Trigger              | Method               | Description                         |
-|----------------------|----------------------|-------------------------------------|
-| PR merged            | Webhook receiver     | CI sends HTTP request to trigger    |
-| CI/CD success        | `argocd app sync`    | CLI runs ArgoCD sync from runner    |
-| Custom event logic   | Go tool              | Tool connects to ArgoCD API         |
+| Trigger            | Method               | Description                           |
+|--------------------|----------------------|---------------------------------------|
+| PR merged          | Webhook receiver     | CI sends HTTP request to trigger sync |
+| CI/CD completed    | `argocd app sync`    | Run ArgoCD CLI directly               |
+| Custom event logic | Go CLI tool          | Executes sync securely via API/exec   |
 
 ---
 
@@ -44,89 +49,107 @@ Whether you use GitHub Actions, GitLab CI, or a custom deployment pipeline, this
 
 ```plaintext
           +---------+            +------------------+            +------------------+
-          | GitHub  |  PR Merge  | GitHub Actions   |  Webhook   | ArgoCD Sync App  |
+          | GitHub  |  PR Merge  | GitHub Actions   |  Webhook   | ArgoCD Controller |
           +---------+ ---------->+------------------+----------->+------------------+
                                                               |
                                                               v
                                                     argocd app sync my-app
-```
 
----
 
-## 🔧 Project Structure
+🔧 Project Structure
 
-```bash
 argocd-pipeline-trigger/
-├── .github/                # GitHub Actions workflows
-├── manifests/              # ArgoCD app and receiver manifests
-├── scripts/                # Bash scripts to trigger sync
-├── cmd/                    # CLI tool (if using Go)
-├── internal/               # Internal logic for CLI/webhook
-├── examples/               # Example repo and CI integrations
-├── Dockerfile              # For custom webhook receiver image
-├── go.mod / go.sum         # If using Go
+├── cmd/                    # CLI command logic (cobra)
+├── internal/               # Core logic to connect to ArgoCD
+├── .github/workflows/      # GitHub Actions pipeline
+├── Dockerfile              # Secure distroless image
+├── Makefile                # Build, lint, test, scan, docker
+├── go.mod / go.sum         # Module definitions
+├── bin/                    # Compiled binary output
 └── README.md
-```
 
----
+🚀 Getting Started
+✅ Option 1: Use CLI directly
 
-## 🚀 Getting Started
+./bin/argocd-sync sync \
+  --app my-app \
+  --server https://argocd.example.com \
+  --username admin \
+  --password secret \
+  --insecure
 
-### Option 1: Use ArgoCD CLI in your CI
+🐳 Option 2: Use Docker image
 
-```bash
-argocd login $ARGOCD_SERVER --username $USER --password $PASSWORD
-argocd app sync my-app
-```
+docker build -t argocd-sync .
+docker run --rm argocd-sync sync \
+  --app my-app \
+  --server https://argocd.example.com \
+  --username admin \
+  --password secret \
+  --insecure
 
-### Option 2: Webhook Receiver (sample)
+🛠 Option 3: Run via GitHub Actions
 
-```bash
-curl -X POST http://your-receiver/sync \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"app": "my-app", "project": "default"}'
-```
+- name: 🔑 Login and Sync ArgoCD
+  run: |
+    argocd login $ARGOCD_SERVER \
+      --username $ARGOCD_USERNAME \
+      --password $ARGOCD_PASSWORD \
+      --insecure
+    argocd app sync my-app
 
-### Option 3: Go-based CLI tool (coming soon)
+🧪 Development
+🔧 Build
 
-```bash
-./argocd-trigger --app my-app --token $ARGOCD_TOKEN
-```
+make build
 
----
 
-## 📋 Requirements
+🧼 Lint & Test
 
-- ArgoCD v2.5+
-- Token or session access to ArgoCD API
-- CI/CD tool with webhook or CLI support
+make lint
+make test
 
----
 
-## ✅ Roadmap
+🔐 Security Scan
 
-- [x] Basic sync via CLI
-- [x] Bash script with ArgoCD CLI
-- [ ] Go-based webhook receiver
-- [ ] Custom CLI tool with `cobra`
-- [ ] Demo repo with full CI/CD pipeline
+make scan
 
----
+Uses Trivy to detect HIGH/CRITICAL vulnerabilities in the Docker image.
 
-## 🤝 Contributing
 
-PRs and ideas are welcome!  
-Want to share your pipeline? Open an issue or submit an example repo.
+✅ Requirements
+Go 1.21+
 
----
+ArgoCD CLI installed (inside Docker or system)
 
-## 📄 License
+ArgoCD v2.5+
 
-[MIT](LICENSE)
+Valid user/token for authentication
 
----
+📋 Roadmap
+ CLI tool with Cobra
 
-## 👨‍💻 Author
+ GitHub Actions pipeline integration
 
-Made with ❤️ by [Giovanni Gava](https://github.com/giovanni-gava)  
-DevOps Engineer | Software Engineer | Cloud Architect | AWS | GCP | Python & Golang Builder | Kubernetes | Terraform | CI/CD Evangelist | Infra as Code Expert | Strategic Problem Solver | Creative Mind 
+ Secure Docker image (distroless)
+
+ Trivy scan included in Makefile
+
+ Webhook receiver in Go
+
+ Helm chart for deploying CLI/receiver
+
+ Optional Slack/Discord notifier
+
+
+🤝 Contributing
+Pull requests, ideas, and discussions are welcome!
+Share your integration or fork with #argocd-pipeline-trigger ❤️
+
+👨‍💻 Author
+Made with 💙 by Giovanni Gava
+DevOps Engineer | Software Engineer (Go) | Cloud Architect | GitOps Evangelist
+
+![ChatGPT Image 13 de abr  de 2025, 01_22_58](https://github.com/user-attachments/assets/0ed8c488-51de-49cf-8006-00cf9a52367d)
+
+
