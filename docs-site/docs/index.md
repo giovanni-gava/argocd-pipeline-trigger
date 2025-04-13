@@ -53,3 +53,7 @@ Most GitOps teams want to keep ArgoCD declarative — but also want control over
 Start with the [Quickstart guide](quickstart.md) and deploy your first automated sync with notifications in under 2 minutes.
 
 Looking to contribute? Check the [Contributing guide](contributing.md).
+
+
+
+
