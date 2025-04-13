@@ -11,6 +11,8 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/giovanni-gava/argocd-pipeline-trigger/internal/notifier"
 )
 
@@ -25,8 +27,12 @@ type Payload struct {
 
 func main() {
 	addr := getEnv("ADDR", defaultAddr)
+
 	n := notifier.NewFromEnv()
+	notifier.RegisterMetrics()
+	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/sync", loggingMiddleware(syncHandler(n)))
+
 	log.Printf("🌐 Webhook receiver listening on %s...", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("❌ Server failed: %v", err)
@@ -59,13 +65,20 @@ func syncHandler(n notifier.Notifier) http.HandlerFunc {
 		duration := time.Since(start)
 
 		title, msg, success := notifier.FormatMessage(payload.App, duration, err)
-		_ = n.Notify(ctx, title, msg, success) // ignore error from notify
+		_ = n.Notify(ctx, title, msg, success)
 
+		status := "success"
 		if err != nil {
+			status = "failure"
+			notifier.SyncTotal.WithLabelValues(payload.App, status).Inc()
+			notifier.SyncDuration.WithLabelValues(payload.App).Observe(duration.Seconds())
 			log.Printf("❌ Failed to sync app %q: %v", payload.App, err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		notifier.SyncTotal.WithLabelValues(payload.App, status).Inc()
+		notifier.SyncDuration.WithLabelValues(payload.App).Observe(duration.Seconds())
 
 		log.Printf("✅ Successfully triggered sync for app: %s", payload.App)
 		w.WriteHeader(http.StatusOK)
