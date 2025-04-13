@@ -63,3 +63,4 @@ This project decouples sync automation from ArgoCD itself, allowing teams to:
 - Control sync timing and conditions
 - Integrate notifications
 - Keep ArgoCD declarative while syncing on-demand
+
