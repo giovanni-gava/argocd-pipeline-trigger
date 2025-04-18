@@ -44,3 +44,12 @@ sidecar:
   dashboards:
     enabled: true
     label: grafana_dashboard
+
+auth:
+  enabled: true
+  # Recommended: Use a Kubernetes Secret instead of hardcoding this token.
+  # secretRef:
+  #   name: webhook-receiver-secrets
+  #   key: authToken
+  # Or fallback to plain text (not recommended in production):
+  token: ""

@@ -24,16 +24,16 @@ spec:
         imagePullPolicy: { ? { .Values.image.pullPolicy } }
         ports:
         - containerPort: 8080
-        env:
+                env:
         - name: ENABLE_SLACK
-          value: { ? { .Values.notifications.slack.enabled | quote } }
+          value: {{ .Values.notifications.slack.enabled | quote }}
         - name: SLACK_WEBHOOK_URL
           valueFrom:
             secretKeyRef:
               name: webhook-receiver-secrets
               key: slackWebhookUrl
         - name: ENABLE_TELEGRAM
-          value: { ? { .Values.notifications.telegram.enabled | quote } }
+          value: {{ .Values.notifications.telegram.enabled | quote }}
         - name: TELEGRAM_BOT_TOKEN
           valueFrom:
             secretKeyRef:
@@ -45,4 +45,16 @@ spec:
               name: webhook-receiver-secrets
               key: telegramChatId
         - name: ADDR
-          value: { ? { .Values.env.addr | quote } }
+          value: {{ .Values.env.addr | quote }}
+{{- if .Values.auth.enabled }}
+{{- if .Values.auth.secretRef }}
+        - name: AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.auth.secretRef.name }}
+              key: {{ .Values.auth.secretRef.key }}
+{{- else if .Values.auth.token }}
+        - name: AUTH_TOKEN
+          value: {{ .Values.auth.token | quote }}
+{{- end }}
+{{- end }}

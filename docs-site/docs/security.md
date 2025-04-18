@@ -19,6 +19,7 @@ ArgoCD Pipeline Trigger is designed with safety and production-readiness in mind
 | Slack Webhook URL   | Kubernetes Secret |
 | Telegram Bot Token  | Kubernetes Secret |
 | Telegram Chat ID    | Kubernetes Secret |
+| Receiver Auth Token | Kubernetes Secret or Env Var |
 
 Use sealed-secrets or SOPS for GitOps-friendly secret management.
 
@@ -27,7 +28,6 @@ Use sealed-secrets or SOPS for GitOps-friendly secret management.
 ## 🧱 Runtime Protections
 
 - Webhook requests use **timeouts (10s)** to prevent long-running calls
-- `--insecure` flag in CLI is optional and off by default
 - Docker images are based on **distroless** to minimize attack surface
 - User runs as non-root (`runAsUser: 65532`)
 
@@ -37,7 +37,32 @@ Use sealed-secrets or SOPS for GitOps-friendly secret management.
 
 - Payloads are parsed as **strict JSON**
 - Requests missing `app` or malformed will return `400 Bad Request`
-- Future: extend with schema validation and OpenAPI
+
+---
+
+## 🔐 Authentication (Bearer Token)
+
+For additional protection, the `/sync` endpoint supports **optional Bearer Token authentication**.
+
+### Enable Authentication:
+Set an environment variable in the receiver:
+```bash
+export AUTH_TOKEN="your-super-secret-token"
+```
+
+Then send requests using:
+```bash
+curl -X POST http://receiver-url/sync \
+  -H "Authorization: Bearer your-super-secret-token" \
+  -H "Content-Type: application/json" \
+  -d '{"app":"your-app"}'
+```
+
+If `AUTH_TOKEN` is **not set**, the endpoint is **open** (useful for internal testing).
+
+For production, it's recommended to use this token via:
+- ENV in Kubernetes Deployment
+- `valueFrom` linked to a Kubernetes Secret
 
 ---
 
@@ -56,10 +81,11 @@ nginx.ingress.kubernetes.io/limit-rpm: "30"
 
 | Feature            | Status |
 |--------------------|--------|
-| Bearer token auth  | 🔜 planned |
+| Bearer token auth  | ✅ implemented |
 | HMAC validation    | 🔜 planned |
 | mTLS enforcement   | ❓ advanced |
 
 ---
 
 Security is an ongoing effort. Always review deployments, scan images with [Trivy](https://github.com/aquasecurity/trivy), and follow best practices from CNCF and OWASP.
+
