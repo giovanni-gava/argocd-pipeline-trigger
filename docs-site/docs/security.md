@@ -20,6 +20,7 @@ ArgoCD Pipeline Trigger is designed with safety and production-readiness in mind
 | Telegram Bot Token  | Kubernetes Secret |
 | Telegram Chat ID    | Kubernetes Secret |
 | Receiver Auth Token | Kubernetes Secret or Env Var |
+| HMAC Secret         | Kubernetes Secret or Env Var |
 
 Use sealed-secrets or SOPS for GitOps-friendly secret management.
 
@@ -40,11 +41,12 @@ Use sealed-secrets or SOPS for GitOps-friendly secret management.
 
 ---
 
-## 🔐 Authentication (Bearer Token)
+## 🔐 Authentication Methods
 
-For additional protection, the `/sync` endpoint supports **optional Bearer Token authentication**.
+The `/sync` endpoint supports multiple methods of authentication. You can use one or both:
 
-### Enable Authentication:
+### 1. Bearer Token Authentication
+
 Set an environment variable in the receiver:
 ```bash
 export AUTH_TOKEN="your-super-secret-token"
@@ -60,9 +62,25 @@ curl -X POST http://receiver-url/sync \
 
 If `AUTH_TOKEN` is **not set**, the endpoint is **open** (useful for internal testing).
 
-For production, it's recommended to use this token via:
-- ENV in Kubernetes Deployment
-- `valueFrom` linked to a Kubernetes Secret
+### 2. HMAC Signature Authentication (recommended for CI/CD)
+
+Set a shared secret in your receiver:
+```bash
+export HMAC_SECRET="super-secure-hmac-key"
+```
+
+Then compute the HMAC hash in your CI or test script:
+```bash
+payload='{"app":"your-app"}'
+signature=$(echo -n "$payload" | openssl dgst -sha256 -hmac "$HMAC_SECRET" | sed 's/^.* //')
+
+curl -X POST http://receiver-url/sync \
+  -H "Content-Type: application/json" \
+  -H "X-Signature: sha256=$signature" \
+  -d "$payload"
+```
+
+If `HMAC_SECRET` is **not set**, the receiver will skip verification.
 
 ---
 
@@ -77,13 +95,13 @@ nginx.ingress.kubernetes.io/limit-rpm: "30"
 
 ---
 
-## 🧠 Suggested Enhancements (optional)
+## 🧠 Suggested Enhancements
 
-| Feature            | Status |
-|--------------------|--------|
-| Bearer token auth  | ✅ implemented |
-| HMAC validation    | 🔜 planned |
-| mTLS enforcement   | ❓ advanced |
+| Feature            | Status         |
+|--------------------|----------------|
+| Bearer token auth  | ✅ Implemented |
+| HMAC validation    | ✅ Implemented |
+| mTLS enforcement   | ❓ Advanced     |
 
 ---
 

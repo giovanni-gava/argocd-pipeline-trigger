@@ -56,5 +56,16 @@ spec:
 {{- else if .Values.auth.token }}
         - name: AUTH_TOKEN
           value: {{ .Values.auth.token | quote }}
+          {{- if .Values.hmac.enabled }}
+{{- if .Values.hmac.secretRef }}
+- name: HMAC_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.hmac.secretRef.name }}
+      key: {{ .Values.hmac.secretRef.key }}
+{{- else if .Values.hmac.secret }}
+- name: HMAC_SECRET
+  value: {{ .Values.hmac.secret | quote }}
 {{- end }}
 {{- end }}
+

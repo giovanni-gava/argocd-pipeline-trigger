@@ -53,3 +53,10 @@ auth:
   #   key: authToken
   # Or fallback to plain text (not recommended in production):
   token: ""
+
+hmac:
+  enabled: true
+  secret: ""
+  # secretRef:
+  #   name: webhook-receiver-secrets
+  #   key: hmacSecret

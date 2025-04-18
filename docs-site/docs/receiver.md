@@ -1,66 +1,106 @@
 # 🌐 Webhook Receiver
 
-The Webhook Receiver is a lightweight, stateless HTTP service built in Go that listens for `POST` requests from CI/CD tools and triggers an ArgoCD sync operation.
+The webhook receiver is a lightweight Go service that listens for incoming CI/CD events (e.g., PR merges) and triggers an `argocd app sync` operation.
 
 ---
 
-## 🔧 How it works
+## 🚀 How it works
 
-1. CI merges a PR (e.g., GitHub/GitLab)
-2. CI sends a `POST /sync` to the Webhook Receiver
-3. Receiver runs `argocd app sync <app>` locally
-4. Duration and status are measured and exposed as Prometheus metrics
-5. A notification is sent to Slack/Telegram (optional)
-
----
-
-## 🔐 Security Considerations
-
-| Area         | Strategy |
-|--------------|----------|
-| Transport    | Use TLS (via ingress/controller) |
-| Auth         | Can be extended with token header (planned) |
-| Secrets      | Managed via Kubernetes Secret only |
-| Timeout      | Sync process has hard timeout (default: 10s) |
-| Rate limit   | Recommend external NGINX / Gateway limiters |
-| Input        | Strict JSON decoding and validation |
+- Exposes a single POST endpoint: `/sync`
+- Receives JSON payload with `{"app":"your-app"}`
+- Executes `argocd app sync <app>` under the hood
+- Sends notification via Slack or Telegram (if enabled)
+- Exports Prometheus metrics (`/metrics`)
+- Now supports: **Bearer Token** + **HMAC-SHA256 Signature** auth
 
 ---
 
-## 📨 Payload format
+## 📦 Environment Variables
 
-```json
-{
-  "app": "my-argocd-app"
-}
+| Name           | Required | Description |
+|----------------|----------|-------------|
+| `ADDR`         | No       | Port to bind (default `:8080`) |
+| `AUTH_TOKEN`   | Optional | Bearer token for authorization |
+| `HMAC_SECRET`  | Optional | HMAC secret for signature validation |
+| `ENABLE_SLACK` | Optional | Enable Slack notifications |
+| `ENABLE_TELEGRAM` | Optional | Enable Telegram notifications |
+
+---
+
+## 🔐 Authentication Options
+
+### 1. Bearer Token
+
+Set `AUTH_TOKEN` on the receiver:
+```bash
+export AUTH_TOKEN="my-token"
 ```
 
-If the `app` field is missing or malformed, the receiver responds with `400 Bad Request`.
+Send requests with:
+```bash
+curl -X POST http://localhost:8080/sync \
+  -H "Authorization: Bearer my-token" \
+  -H "Content-Type: application/json" \
+  -d '{"app":"demo-app"}'
+```
+
+### 2. HMAC Signature (recommended)
+
+Set `HMAC_SECRET` on the receiver:
+```bash
+export HMAC_SECRET="super-hmac"
+```
+
+Generate signature:
+```bash
+payload='{"app":"demo-app"}'
+signature=$(echo -n "$payload" | openssl dgst -sha256 -hmac "$HMAC_SECRET" | sed 's/^.* //')
+```
+
+Send request:
+```bash
+curl -X POST http://localhost:8080/sync \
+  -H "Content-Type: application/json" \
+  -H "X-Signature: sha256=$signature" \
+  -d "$payload"
+```
 
 ---
 
-## ✅ Sample Response
+## 📈 Metrics
 
-```json
-HTTP/1.1 200 OK
+Prometheus endpoint available at `/metrics`.
 
-ok
+| Metric Name            | Type     | Description |
+|------------------------|----------|-------------|
+| `sync_total`           | Counter  | Total syncs triggered |
+| `sync_duration_seconds`| Histogram | Sync durations |
+
+---
+
+## 🧪 Test locally
+
+```bash
+go run cmd/webhook/main.go
 ```
 
-On error:
-```json
-HTTP/1.1 500 Internal Server Error
-
-sync failed: app not found
+```bash
+curl -X POST http://localhost:8080/sync \
+  -H "Authorization: Bearer my-token" \
+  -H "Content-Type: application/json" \
+  -d '{"app":"demo-app"}'
 ```
 
 ---
 
-## 🔁 Why not use ArgoCD webhooks directly?
+## ✅ Production Tips
 
-This project decouples sync automation from ArgoCD itself, allowing teams to:
-- Add metrics, alerts, dashboards
-- Control sync timing and conditions
-- Integrate notifications
-- Keep ArgoCD declarative while syncing on-demand
+- Use `HMAC_SECRET` or `AUTH_TOKEN` (or both!)
+- Use a reverse proxy for TLS and rate limiting
+- Mount secrets via Kubernetes or Vault
+- Scrape `/metrics` with Prometheus
+
+---
+
+For full deployment, see the [Helm Chart](helm.md) and [Security Guide](security.md).
 

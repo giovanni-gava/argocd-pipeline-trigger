@@ -49,19 +49,40 @@ kubectl create secret generic webhook-receiver-secrets \
 
 ```bash
 helm upgrade --install webhook charts/webhook-receiver \
-  --set notifications.telegram.enabled=true
+  --set notifications.telegram.enabled=true \
+  --set auth.token="my-token" \
+  --set hmac.secret="super-hmac"
 ```
 
 ---
 
 ## 5. Send a test Webhook
 
+### A. Port-forward the service
+
 ```bash
 kubectl port-forward svc/webhook-receiver 8080:80
 ```
 
+### B. Send via HMAC (recommended)
+
+```bash
+export HMAC_SECRET="super-hmac"
+payload='{"app":"demo-app"}'
+signature=$(echo -n "$payload" | openssl dgst -sha256 -hmac "$HMAC_SECRET" | sed 's/^.* //')
+```
 ```bash
 curl -X POST http://localhost:8080/sync \
+  -H "Content-Type: application/json" \
+  -H "X-Signature: sha256=$signature" \
+  -d "$payload"
+```
+
+### C. Or send with Bearer Token
+
+```bash
+curl -X POST http://localhost:8080/sync \
+  -H "Authorization: Bearer my-token" \
   -H "Content-Type: application/json" \
   -d '{"app": "demo-app"}'
 ```
@@ -93,3 +114,4 @@ Explore:
 ---
 
 Need help? Reach out on [LinkedIn](https://linkedin.com/in/giovanni-gava) or open an issue on GitHub 💙
+

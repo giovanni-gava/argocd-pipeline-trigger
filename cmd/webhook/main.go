@@ -1,10 +1,14 @@
-// cmd/webhook/main.go
 package main
 
 import (
+	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -12,9 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	"github.com/giovanni-gava/argocd-pipeline-trigger/internal/notifier"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
@@ -32,7 +35,7 @@ func main() {
 	notifier.RegisterMetrics()
 
 	http.Handle("/metrics", promhttp.Handler())
-	http.HandleFunc("/sync", loggingMiddleware(withAuth(syncHandler(n))))
+	http.HandleFunc("/sync", loggingMiddleware(withAuth(withHMAC(syncHandler(n)))))
 
 	log.Printf("🌐 Webhook receiver listening on %s...", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
@@ -47,10 +50,44 @@ func withAuth(next http.HandlerFunc) http.HandlerFunc {
 			next(w, r)
 			return
 		}
-
 		auth := r.Header.Get("Authorization")
 		if !strings.HasPrefix(auth, "Bearer ") || strings.TrimPrefix(auth, "Bearer ") != expectedToken {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next(w, r)
+	}
+}
+
+func withHMAC(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		secret := os.Getenv("HMAC_SECRET")
+		if secret == "" {
+			next(w, r)
+			return
+		}
+
+		sig := r.Header.Get("X-Signature")
+		if !strings.HasPrefix(sig, "sha256=") {
+			http.Error(w, "Missing or invalid signature header", http.StatusUnauthorized)
+			return
+		}
+		expectedSig := strings.TrimPrefix(sig, "sha256=")
+
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Failed to read body", http.StatusInternalServerError)
+			return
+		}
+		r.Body.Close()
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+		mac := hmac.New(sha256.New, []byte(secret))
+		mac.Write(bodyBytes)
+		computedSig := hex.EncodeToString(mac.Sum(nil))
+
+		if !hmac.Equal([]byte(computedSig), []byte(expectedSig)) {
+			http.Error(w, "Invalid signature", http.StatusUnauthorized)
 			return
 		}
 		next(w, r)
