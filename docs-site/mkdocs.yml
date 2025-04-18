@@ -45,6 +45,7 @@ nav:
 - Security: security.md
 - Helm Deployment: helm.md
 - Architecture: architecture.md
+- Changelog: CHANGELOG.md
 - Contributing: CONTRIBUTING.md
 
 markdown_extensions:
