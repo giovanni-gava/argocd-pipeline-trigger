@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -27,15 +28,32 @@ type Payload struct {
 
 func main() {
 	addr := getEnv("ADDR", defaultAddr)
-
 	n := notifier.NewFromEnv()
 	notifier.RegisterMetrics()
+
 	http.Handle("/metrics", promhttp.Handler())
-	http.HandleFunc("/sync", loggingMiddleware(syncHandler(n)))
+	http.HandleFunc("/sync", loggingMiddleware(withAuth(syncHandler(n))))
 
 	log.Printf("🌐 Webhook receiver listening on %s...", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("❌ Server failed: %v", err)
+	}
+}
+
+func withAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		expectedToken := os.Getenv("AUTH_TOKEN")
+		if expectedToken == "" {
+			next(w, r)
+			return
+		}
+
+		auth := r.Header.Get("Authorization")
+		if !strings.HasPrefix(auth, "Bearer ") || strings.TrimPrefix(auth, "Bearer ") != expectedToken {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next(w, r)
 	}
 }
 
